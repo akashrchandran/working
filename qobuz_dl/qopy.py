@@ -82,13 +82,17 @@ class Client:
                 "request_sig": r_sig_hashed,
             }
         elif epoint == "track/getFileUrl":
+            try:
+                secret = kwargs["sec"]
+            except KeyError:
+                secret = self.sec
             unix = time.time()
             track_id = kwargs["id"]
             fmt_id = kwargs["fmt_id"]
             if int(fmt_id) not in (5, 6, 7, 27):
                 raise InvalidQuality("Invalid quality id: choose between 5, 6, 7 or 27")
             r_sig = "trackgetFileUrlformat_id{}intentstreamtrack_id{}{}{}".format(
-                fmt_id, track_id, unix, self.sec
+                fmt_id, track_id, unix, secret
             )
             r_sig_hashed = hashlib.md5(r_sig.encode("utf-8")).hexdigest()
             params = {
@@ -189,7 +193,7 @@ class Client:
 
     def test_secret(self, sec):
         try:
-            r = self.api_call("userLibrary/getAlbumsList", sec=sec)
+            r = self.api_call("track/getFileUrl", id="19512574", fmt_id = 6, sec=sec)
             return True
         except InvalidAppSecretError:
             return False

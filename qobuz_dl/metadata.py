@@ -1,6 +1,7 @@
 import re
 import os
 import logging
+import requests
 
 from mutagen.flac import FLAC, Picture
 import mutagen.id3 as id3
@@ -122,7 +123,6 @@ def tag_flac(filename, root_dir, final_name, d, album, istrack=True, em_image=Fa
     audio = FLAC(filename)
 
     audio["TITLE"] = _get_title(d)
-
     audio["TRACKNUMBER"] = str(d["track_number"])  # TRACK NUMBER
 
     if "Disc " in final_name:
@@ -140,7 +140,13 @@ def tag_flac(filename, root_dir, final_name, d, album, istrack=True, em_image=Fa
         audio["ARTIST"] = artist_ or album["artist"]["name"]
 
     audio["LABEL"] = album.get("label", {}).get("name", "n/a")
-
+    if 'isrc' in d:
+        audio["ISRC"] = d["isrc"]
+        lyrics = requests.get(f"https://qobuz-api.vercel.app/commonid?isrc={d['isrc']}")
+        if lyrics.json():
+            subtle = requests.get(f"https://qobuz-api.vercel.app/lyrics?commonid={lyrics.json()['commontrack_id']}")
+            if subtle.json():
+                audio['lyrics'] = subtle.json()['subtitle_body']
     if istrack:
         audio["GENRE"] = _format_genres(d["album"]["genres_list"])
         audio["ALBUMARTIST"] = d["album"]["artist"]["name"]

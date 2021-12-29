@@ -144,7 +144,9 @@ def tag_flac(filename, root_dir, final_name, d, album, istrack=True, em_image=Fa
         audio["ISRC"] = d["isrc"]
         lyrics = requests.get(f"https://qobuz-api.vercel.app/spotify?isrc={d['isrc']}").json()
         if not lyrics['error']:
-            audio['lyrics'] = lyrics['lyrics']
+            audio['LYRICS'] = lyrics['lyrics']
+    if 'upc' in d:
+        audio["UPC"] = d["upc"]
     if istrack:
         audio["GENRE"] = _format_genres(d["album"]["genres_list"])
         audio["ALBUMARTIST"] = d["album"]["artist"]["name"]
